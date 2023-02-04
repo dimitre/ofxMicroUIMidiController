@@ -4,3 +4,6 @@ meta:
 	ADDON_AUTHOR = Dimitre
 	ADDON_TAGS = "UI" "GUI" "User Interface"
 	ADDON_URL = http://github.com/dimitre/ofxMicroUI
+
+common:
+	ADDON_DEPENDENCIES = ofxMidi ofxMicroUI

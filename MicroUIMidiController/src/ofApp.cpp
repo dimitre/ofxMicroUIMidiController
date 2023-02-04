@@ -1,22 +1,11 @@
 #include "ofApp.h"
 
 void ofApp::setup(){
-	
-	
 	u.createFromText("u.txt");
-	ofAddListener(u.uiEvent, this, &ofApp::uiEvents);
-	for (auto & u : u.uis) {
-		ofAddListener(u.second.uiEvent, this, &ofApp::uiEvents);
-	}
-	soft.setUI(&u);
 	ofSetCircleResolution(48);
-	
-	midiController.setUI(u);
-	midiController.set("APC MINI");
 }
 
-void ofApp::update(){
-}
+void ofApp::update(){}
 
 void ofApp::draw(){
 	ofBackground(40);
@@ -54,16 +43,4 @@ void ofApp::draw(){
 	}
 	fbo->end();
 	soft.drawFbo();
-}
-
-void ofApp::keyPressed(int key){
-}
-
-void ofApp::keyReleased(int key){
-}
-
-
-void ofApp::uiEvents(ofxMicroUI::element & e) {
-	if (e.name == "presets") {
-	}
 }

@@ -1,2 +1,3 @@
 ofxMidi
 ofxMicroUI
+ofxMicroUIMidiController
