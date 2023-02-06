@@ -1,0 +1,12 @@
+*.app/*
+*.app
+.DS_Store
+obj/*
+*obj/*
+*/obj/*
+.vscode/*
+*/.vscode
+*/.vscode/*
+*/*.app
+*/*.app/*
+.cquery_cache/*
