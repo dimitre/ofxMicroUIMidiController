@@ -6,6 +6,7 @@
 #include "ofMain.h"
 #include "ofEvents.h"
 #include "ofxMidi.h"
+#include "ofxMicroUISoftware.h"
 
 /*
  //http://community.akaipro.com/akai_professional/topics/midi-information-for-apc-mini
