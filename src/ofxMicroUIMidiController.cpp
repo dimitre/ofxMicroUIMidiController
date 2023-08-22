@@ -23,8 +23,7 @@ void ofxMicroUIMidiController::newMidiMessage(ofxMidiMessage& msg) {
 	if ( midiControllerMap.find(index) != midiControllerMap.end()) {
 		// action
 		elementListMidiController *te = &midiControllerMap[index];
-		ofxMicroUI * _ui;
-		_ui = te->ui == "master" ? _u : _ui = &_u->uis[te->ui];
+		ofxMicroUI * _ui { te->ui == "master" ? _u :  &_u->uis[te->ui] };
 		
 		// aqui apenas os controles que somente acontecem no note on
 		if (msg.status == 144) {
