@@ -156,10 +156,10 @@ void ofxMicroUIMidiController::set(const string & midiDevice) {
 	//	ofxMidi::setConnectionListener(this);
 		midiControllerIn.addListener(this);
 
-		string filename = folder + midiDevice + ".txt";
+		string fileName { folder + midiDevice + ".txt" };
 
-		if (ofFile::doesFileExist(filename) && midiControllerIn.isOpen()) {
-			for (auto & m : ofxMicroUI::textToVector(filename)) {
+		if (fs::exists(ofToDataPath(fileName)) && midiControllerIn.isOpen()) {
+			for (auto & m : ofxMicroUI::textToVector(fileName)) {
 				if (m != "" && m.substr(0,1) != "#") {
 					elementListMidiController te;
 					vector <string> cols = ofSplitString(m, "\t");
