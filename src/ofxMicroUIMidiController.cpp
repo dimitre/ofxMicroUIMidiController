@@ -191,6 +191,7 @@ void ofxMicroUIMidiController::set(const string & midiDevice) {
 
 void ofxMicroUIMidiController::checkElement(const ofxMicroUI::element & e) {
 	if (e.name == "presets" && e._ui->uiName == "master") {
+		cout << "OWWW presets and master" << endl;
 		for (auto & m : midiControllerMap) {
 			if (m.second.nome == e._ui->pString["presets"]) {
 				if (lastPresetChannel != 0 || lastPresetPitch != 0) {

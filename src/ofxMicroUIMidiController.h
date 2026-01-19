@@ -1,12 +1,15 @@
 #pragma once
 
-
 //#ifdef USEMIDI
-
-#include "ofMain.h"
 #include "ofEvents.h"
 #include "ofxMidi.h"
 #include "ofxMicroUISoftware.h"
+#include <string>
+#include <vector>
+#include <map>
+using std::string;
+using std::vector;
+using std::map;
 
 /*
  //http://community.akaipro.com/akai_professional/topics/midi-information-for-apc-mini
@@ -21,21 +24,14 @@
  */
 
 
-// tentativa 25 de nov de 2022 - we light festival
 #include "ofxMicroUI.h"
-// #include "ofxMicroUISoftware.h"
 
-class ofxMicroUIMidiController : public ofBaseApp, public ofxMidiListener {
+class ofxMicroUIMidiController : public ofxMidiListener {
 public:
-	
-	
-	//	ofxMicroUIMidiController();
 	 ofxMicroUIMidiController(ofxMicroUISoftware * _soft, string device);
 	 ~ofxMicroUIMidiController() {};
 	
-	
 	unsigned int vals[64] = { 0 };
-
 	
 #ifdef USEMIDICONTROLLERLIGHTS
 	unsigned int apcMiniLeds[64] = {
@@ -69,17 +65,6 @@ public:
 	
 	ofFbo fbo;
 	ofPixels pixels;
-//    void offbytes() {
-//        for (int a=120; a<=127; a++) {
-//            vector <unsigned char> bytes = { 0xB1, (unsigned char)a, 0x00 };
-//            cout << int(bytes[0]) << endl;
-//            cout << int(bytes[1]) << endl;
-//            cout << int(bytes[2]) << endl;
-//            cout << "--" << endl;
-//            midiControllerOut.sendMidiBytes(bytes);
-//        }
-//    }
-
 
 	void displayFromVals() {
 		for (int i=0; i<64; i++) {
