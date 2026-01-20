@@ -28,11 +28,16 @@ using std::map;
 
 class ofxMicroUIMidiController : public ofxMidiListener {
 public:
-	 ofxMicroUIMidiController(ofxMicroUISoftware * _soft, string device);
-	 ~ofxMicroUIMidiController() {};
-	
+	ofxMicroUIMidiController(ofxMicroUISoftware * _soft, string device);
+	~ofxMicroUIMidiController() {};
+
+	// std::string changePreset { "" };
+	ofThreadChannel<std::string> presetChannel;
+
+	void onUpdate(ofEventArgs &data);
+
 	unsigned int vals[64] = { 0 };
-	
+
 #ifdef USEMIDICONTROLLERLIGHTS
 	unsigned int apcMiniLeds[64] = {
 		56, 57, 58, 59, 60, 61, 62, 63,
@@ -44,25 +49,25 @@ public:
 		8,  9,  10, 11, 12, 13, 14, 15,
 		0,  1,  2,  3,  4,  5,  6,  7
 	};
-	
+
 	/* solved here
 	 I had an issue when sending note off to 98 (shift key) before others, so midi was stuck
 	 */
-	
+
 	vector <unsigned int> lateralLeds = {
 		71, 70, 69, 68, 67, 66, 65, 64, //baixo
 		82, 83, 84, 85, 86, 87, 88, 89, //lateral
 		98, //quadrado?
 	};
-	
+
 //    vector <unsigned int> lateralLeds = {
 //        71, 70, 69, 68, 67, 66, 65, 64
 //    };
-						 
+
 
 //    unsigned int colors[4] = { 0,1,3,5 };
 	unsigned int colors[3] = { 1,3,5 };
-	
+
 	ofFbo fbo;
 	ofPixels pixels;
 
@@ -72,25 +77,25 @@ public:
 			midiControllerOut.sendNoteOn(1, apcMiniLeds[i], vals[i]);
 		}
 	}
-	
+
 	void lateralRandom() {
 		for (auto & l  : lateralLeds) {
 			sendNote(1, l, ofRandom(0,6)); // 1 green 3 red 5 yellow
 		}
 	}
-	
+
 	void centerClear() {
 		for (auto & l  : apcMiniLeds) {
 			sendNote(1, l, 0); // 1 green 3 red 5 yellow
 		}
 	}
-	
+
 	void lateralClear() {
 		for (auto & l  : lateralLeds) {
 			sendNote(1, l, 0); // 1 green 3 red 5 yellow
 		}
 	}
-	
+
 	void blackout() {
 		for (auto & l  : apcMiniLeds) {
 			sendNote(1, l, 0); // 1 green 3 red 5 yellow
@@ -99,7 +104,7 @@ public:
 			sendNote(1, l, 0); // 1 green 3 red 5 yellow
 		}
 	}
-	
+
 	void allRandom() {
 		int c=0;
 		for (auto & l  : apcMiniLeds) {
@@ -117,7 +122,7 @@ public:
 	//    fbo->draw(-fbo->getWidth()*.5, -fbo->getHeight()*.5);
 	//    midiController.fbo.end();
 	//    midiController.display();
-	
+
 	void display() {
 		if (!fbo.isAllocated()) {
 			fbo.allocate(8, 8, GL_RGB);
@@ -136,12 +141,12 @@ public:
 		}
 	}
 #else
-	void blackout() {}	
+	void blackout() {}
 #endif
 
 
 
-	
+
 
 	map <int, map<int, int> > sentMidi;
 	void sendNote(int c, int p, int v) {
@@ -149,7 +154,7 @@ public:
 		sentMidi[c][p] = v;
 		midiControllerOut.sendNoteOn(c, p, v);
 	}
-	
+
 	void restoreLights() {
 		for (auto & x : sentMidi) {
 			for (auto y : x.second) {
@@ -157,9 +162,9 @@ public:
 			}
 		}
 	}
-	
+
 	uint64_t frameAction = 0;
-	
+
 	// todo: some kind of listener able to connect if device is not found at first.
 	struct elementListMidiController {
 	public:
@@ -195,7 +200,7 @@ public:
 	int lastPresetPitch;
 
 	ofFbo * fboMC = NULL;
-	
+
 	int holdPresetNumber = 0;
 
 	ofxMicroUI * _u = NULL;
@@ -210,7 +215,7 @@ public:
 //		ofxMidi::setConnectionListener(this);
 	}
 
-	
+
 //	//--------------------------------------------------------------
 //	void midiInputAdded(string name, bool isNetwork) override {
 //		cout << "input added" << endl;
@@ -230,7 +235,7 @@ public:
 	void newMidiMessage(ofxMidiMessage& msg);
 	void set(const string & midiDevice);
 
-	
+
 	void uiEventMidi(vector<string> & strings) {
 		elementLearn.nome = strings[0];
 		elementLearn.ui = strings[1];

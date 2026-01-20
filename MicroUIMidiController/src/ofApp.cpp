@@ -11,7 +11,7 @@ void ofApp::draw(){
 	ofBackground(40);
 	fbo->begin();
 	ofClear(0,255);
-	
+
 	if (scene == "circles") {
 		for (int a=1; a<4; a++) {
 			string id = ofToString(a);
@@ -24,7 +24,7 @@ void ofApp::draw(){
 			}
 		}
 	}
-	
+
 	else if (scene == "lines") {
 		for (int a=0; a<100; a++) {
 			float x = ofRandom(0,fbo->getWidth());
@@ -32,7 +32,7 @@ void ofApp::draw(){
 			ofDrawLine(0,0,x,y);
 		}
 	}
-	
+
 	else if (scene == "cam") {
 		ofSetColor(255);
 		uiC->pCam["cam1"].update();

@@ -1,7 +1,24 @@
 #include "ofxMicroUIMidiController.h"
 
-//#ifdef USEMIDI
+ofxMicroUIMidiController::ofxMicroUIMidiController(ofxMicroUISoftware * _soft, string device) {
+	set(device);
+	setUI(*_soft->_ui);
+	ofAddListener(_u->uiEventMaster, this, &ofxMicroUIMidiController::uiEventMaster);
+	ofAddListener(ofEvents().update, this, &ofxMicroUIMidiController::onUpdate);
+}
 
+void ofxMicroUIMidiController::onUpdate(ofEventArgs &data) {
+	// if (!empty(changePreset)) {
+	// 	_u->loadPreset(changePreset);
+	// 	changePreset.clear();
+	// }
+	//
+	// Process ALL pending presets from MIDI thread
+	std::string preset;
+	while(presetChannel.tryReceive(preset)){
+		_u->loadPreset(preset);
+	}
+}
 
 void ofxMicroUIMidiController::newMidiMessage(ofxMidiMessage& msg) {
 //        cout << "newMidiMessage " << endl;
@@ -24,7 +41,7 @@ void ofxMicroUIMidiController::newMidiMessage(ofxMidiMessage& msg) {
 		// action
 		elementListMidiController *te = &midiControllerMap[index];
 		ofxMicroUI * _ui { te->ui == "master" ? _u :  &_u->uis[te->ui] };
-		
+
 		// aqui apenas os controles que somente acontecem no note on
 		if (msg.status == 144) {
 			if (te->tipo == "bool") {
@@ -37,15 +54,18 @@ void ofxMicroUIMidiController::newMidiMessage(ofxMidiMessage& msg) {
 					}
 				}
 			}
-			
+
 			else if (te->tipo == "preset") {
 				sendNote(lastPresetChannel, lastPresetPitch, 0); // 1 green 3 red
 				sendNote(msg.channel, msg.pitch, 1); // 1 green 3 red 5 yellow
-				_u->willChangePreset = te->nome;
+				// _u->willChangePreset = te->nome;
+				presetChannel.send(te->nome); // Safe, non-blocking
+
+//				changePreset = te->nome;
 				lastPresetChannel = msg.channel;
 				lastPresetPitch = msg.pitch;
 			}
-			
+
 			else if (te->tipo == "bang") {
 				cout << "BANG! " << te->nome << endl;
 				ofxMicroUI::booleano * e = _ui->getToggle(te->nome);
@@ -71,7 +91,7 @@ void ofxMicroUIMidiController::newMidiMessage(ofxMidiMessage& msg) {
 				//_ui->futureCommands.push_back(future(te->ui, te->nome, "radioSet", te->valor));
 			}
 		}
-		
+
 		else if (te->tipo == "float" || te->tipo == "int") {
 			ofxMicroUI::slider * s = (ofxMicroUI::slider*)_ui->getElement(te->nome);
 			if (s != NULL) {
@@ -91,14 +111,14 @@ void ofxMicroUIMidiController::newMidiMessage(ofxMidiMessage& msg) {
 			}
 		}
 
-		
+
 		else if (te->tipo == "savePresetNumber") {
 			if (_u != NULL) {
 				cout << te->tipo << endl;
 //				holdPresetNumber = _u->getPresetNumber();
 			}
 		}
-		
+
 		else if (te->tipo == "restorePresetNumber") {
 			if (_u != NULL) {
 				cout << te->tipo << endl;
@@ -119,14 +139,14 @@ void ofxMicroUIMidiController::newMidiMessage(ofxMidiMessage& msg) {
 				//127 = verde
 			}
 		}
-		
+
 		// REMOVER?
 		else if (te->tipo == "presetRelease") {
 			if (_u != NULL) {
 				// TODO XAXA
 				// 1 green 3 red 5 yellow
 				sendNote(lastPresetChannel, lastPresetPitch, 0);
-				
+
 //				_u->futureCommands.push_back(future("master", "presets", "loadPresetRelease", ofToInt(te->nome)));
 				//_u->nextPreset.push_back(ofToInt(te->nome));
 				sendNote(msg.channel, msg.pitch, 3); // 1 green 3 red 5 yellow
@@ -203,7 +223,7 @@ void ofxMicroUIMidiController::checkElement(const ofxMicroUI::element & e) {
 			}
 		}
 	}
-	
+
 	for (auto & m : midiControllerMap) {
 		if (m.second.nome == e.name && m.second.ui == e._ui->uiName) {
 			if (m.second.tipo == "bool") {
@@ -240,11 +260,6 @@ void ofxMicroUIMidiController::uiEventMaster(string & s) {
 
 //ofxMicroUIMidiController::ofxMicroUIMidiController() {}
 
-ofxMicroUIMidiController::ofxMicroUIMidiController(ofxMicroUISoftware * _soft, string device) {
-	set(device);
-	setUI(*_soft->_ui);
-	ofAddListener(_u->uiEventMaster, this, &ofxMicroUIMidiController::uiEventMaster);
-}
 
-	
+
 //#endif

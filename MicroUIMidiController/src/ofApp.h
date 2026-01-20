@@ -9,7 +9,7 @@ class ofApp : public ofBaseApp{
 		void setup();
 		void update();
 		void draw();
-	
+
 	ofxMicroUI u;
 	ofxMicroUI * ui = &u.uis["ui"];
 	ofxMicroUI * uiC = &u.uis["scene"];
@@ -17,6 +17,6 @@ class ofApp : public ofBaseApp{
 
 	ofxMicroUISoftware soft { &u, "MidiController" };
 	ofFbo * fbo = &soft.fbo;
-	
+
 	ofxMicroUIMidiController midiController = { &soft, "APC MINI" };
 };
