@@ -31,8 +31,11 @@ public:
 	ofxMicroUIMidiController(ofxMicroUISoftware * _soft, string device);
 	~ofxMicroUIMidiController() {};
 
+	ofxMicroUISoftware * soft = nullptr;
+	
 	// std::string changePreset { "" };
-	ofThreadChannel<std::string> presetChannel;
+//	ofThreadChannel<std::string> presetChannel;
+	ofThreadChannel<ofxMidiMessage> threadMidiMessage;
 
 	void onUpdate(ofEventArgs &data);
 
@@ -145,9 +148,6 @@ public:
 #endif
 
 
-
-
-
 	map <int, map<int, int> > sentMidi;
 	void sendNote(int c, int p, int v) {
 //        cout << "sendNote :: " << c << " : " << p << " : " << v << endl;
@@ -196,8 +196,8 @@ public:
 	map <string,string>			pString;
 
 	// somente para apagar leds nos presets, nada mais
-	int lastPresetChannel;
-	int lastPresetPitch;
+	int lastPresetChannel = -1;
+	int lastPresetPitch = -1;
 
 	ofFbo * fboMC = NULL;
 
@@ -233,6 +233,8 @@ public:
 //	}
 		//--------------------------------------------------------------
 	void newMidiMessage(ofxMidiMessage& msg);
+	void parseMidiMessage(ofxMidiMessage& msg);
+
 	void set(const string & midiDevice);
 
 

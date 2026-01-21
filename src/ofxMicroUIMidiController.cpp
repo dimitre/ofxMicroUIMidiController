@@ -1,6 +1,6 @@
 #include "ofxMicroUIMidiController.h"
 
-ofxMicroUIMidiController::ofxMicroUIMidiController(ofxMicroUISoftware * _soft, string device) {
+ofxMicroUIMidiController::ofxMicroUIMidiController(ofxMicroUISoftware * _soft, string device) : soft(_soft) {
 	set(device);
 	setUI(*_soft->_ui);
 	ofAddListener(_u->uiEventMaster, this, &ofxMicroUIMidiController::uiEventMaster);
@@ -14,13 +14,21 @@ void ofxMicroUIMidiController::onUpdate(ofEventArgs &data) {
 	// }
 	//
 	// Process ALL pending presets from MIDI thread
-	std::string preset;
-	while(presetChannel.tryReceive(preset)){
-		_u->loadPreset(preset);
-	}
+//	std::string preset;
+//	while(presetChannel.tryReceive(preset)){
+//		_u->loadPreset(preset);
+//	}
+
+ 	ofxMidiMessage msg;
+    while(threadMidiMessage.tryReceive(msg)) {
+    	parseMidiMessage(msg);
+    }
+}
+void ofxMicroUIMidiController::newMidiMessage(ofxMidiMessage& msg) {
+	threadMidiMessage.send(msg); // Non-blocking, copies the message
 }
 
-void ofxMicroUIMidiController::newMidiMessage(ofxMidiMessage& msg) {
+void ofxMicroUIMidiController::parseMidiMessage(ofxMidiMessage& msg) {
 //        cout << "newMidiMessage " << endl;
 	frameAction = ofGetFrameNum();
 //        cout << frameAction << endl;
@@ -56,12 +64,16 @@ void ofxMicroUIMidiController::newMidiMessage(ofxMidiMessage& msg) {
 			}
 
 			else if (te->tipo == "preset") {
-				sendNote(lastPresetChannel, lastPresetPitch, 0); // 1 green 3 red
+				if (lastPresetPitch >= 0) {
+					sendNote(lastPresetChannel, lastPresetPitch, 0); // 1 green 3 red
+				}
+				cout << "midi preset " << msg.pitch << endl;
 				sendNote(msg.channel, msg.pitch, 1); // 1 green 3 red 5 yellow
-				// _u->willChangePreset = te->nome;
-				presetChannel.send(te->nome); // Safe, non-blocking
+//				_u->getElement("presets")->set(te->nome);
+//				_u->loadPreset(te->nome);
+//				soft->changePresetChannel.send(te->nome);
+				soft->loadPreset(te->nome);
 
-//				changePreset = te->nome;
 				lastPresetChannel = msg.channel;
 				lastPresetPitch = msg.pitch;
 			}
@@ -211,30 +223,30 @@ void ofxMicroUIMidiController::set(const string & midiDevice) {
 
 void ofxMicroUIMidiController::checkElement(const ofxMicroUI::element & e) {
 	if (e.name == "presets" && e._ui->uiName == "master") {
-		cout << "OWWW presets and master" << endl;
-		for (auto & m : midiControllerMap) {
-			if (m.second.nome == e._ui->pString["presets"]) {
-				if (lastPresetChannel != 0 || lastPresetPitch != 0) {
-					sendNote(lastPresetChannel, lastPresetPitch, 0); // 1 green 3 red
-				}
-				sendNote(m.second.channel, m.second.pitch, 1); // 1 green 3 red
-				lastPresetChannel = m.second.channel;
-				lastPresetPitch = m.second.pitch;
-			}
-		}
+//		cout << "OWWW presets and master" << endl;
+//		for (auto & m : midiControllerMap) {
+//			if (m.second.nome == e._ui->pString["presets"]) {
+//				if (lastPresetChannel != 0 || lastPresetPitch != 0) {
+//					sendNote(lastPresetChannel, lastPresetPitch, 0); // 1 green 3 red
+//				}
+//				sendNote(m.second.channel, m.second.pitch, 1); // 1 green 3 red
+//				lastPresetChannel = m.second.channel;
+//				lastPresetPitch = m.second.pitch;
+//			}
+//		}
 	}
 
-	for (auto & m : midiControllerMap) {
-		if (m.second.nome == e.name && m.second.ui == e._ui->uiName) {
-			if (m.second.tipo == "bool") {
-				if (e._ui->pBool[e.name]) { // *e.b
-					sendNote(m.second.channel, m.second.pitch, 5);
-				} else {
-					sendNote(m.second.channel, m.second.pitch, 0);
-				}
-			}
-		}
-	}
+//	for (auto & m : midiControllerMap) {
+//		if (m.second.nome == e.name && m.second.ui == e._ui->uiName) {
+//			if (m.second.tipo == "bool") {
+//				if (e._ui->pBool[e.name]) { // *e.b
+//					sendNote(m.second.channel, m.second.pitch, 5);
+//				} else {
+//					sendNote(m.second.channel, m.second.pitch, 0);
+//				}
+//			}
+//		}
+//	}
 }
 
 void ofxMicroUIMidiController::uiEvent(ofxMicroUI::element & e) {
