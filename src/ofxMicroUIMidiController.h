@@ -244,7 +244,7 @@ public:
 		elementLearn.tipo = "float";
 	}
 
-	void onExit(ofEventArgs &data) {
+	void onExit(ofEventArgs & /*data*/) {
 		blackout();
 		midiControllerOut.closePort();
 		midiControllerIn.closePort();

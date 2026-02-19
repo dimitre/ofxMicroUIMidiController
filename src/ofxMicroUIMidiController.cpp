@@ -7,7 +7,7 @@ ofxMicroUIMidiController::ofxMicroUIMidiController(ofxMicroUISoftware * _soft, s
 	ofAddListener(ofEvents().update, this, &ofxMicroUIMidiController::onUpdate);
 }
 
-void ofxMicroUIMidiController::onUpdate(ofEventArgs &data) {
+void ofxMicroUIMidiController::onUpdate(ofEventArgs & /*data*/) {
 	// if (!empty(changePreset)) {
 	// 	_u->loadPreset(changePreset);
 	// 	changePreset.clear();
@@ -95,7 +95,7 @@ void ofxMicroUIMidiController::parseMidiMessage(ofxMidiMessage& msg) {
 		if (te->tipo == "radio") {
 			if (te->valor == "") {
 				ofxMicroUI::radio * r = _ui->getRadio(te->nome);
-				int nElements = r->elements.size();
+				int nElements = (int)r->elements.size();
 				int valor = ofMap(msg.value, 0, 127, 0, nElements);
 				r->set(valor);
 			}
