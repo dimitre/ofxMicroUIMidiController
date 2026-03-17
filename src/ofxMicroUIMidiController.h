@@ -28,6 +28,7 @@ using std::map;
 
 class ofxMicroUIMidiController : public ofxMidiListener {
 public:
+	ofxMicroUIMidiController() {}
 	ofxMicroUIMidiController(ofxMicroUISoftware * _soft, string device);
 	~ofxMicroUIMidiController() {};
 
