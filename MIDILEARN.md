@@ -1091,6 +1091,11 @@ private:
 | 2026-04-05 | Use dynamic_cast for type detection | Consistent with existing ofxMicroUI patterns |
 | 2026-04-05 | Rainbow bar shows mapped CCs only | Unmapped = dim, mapped = bright with hue |
 | 2026-04-05 | Store device name in mappings | Foundation for multi-device support |
+| 2026-04-05 | TAB key toggles learn mode | Quick access to mapping |
+| 2026-04-05 | Save by default on exit | ESC to discard changes |
+| 2026-04-05 | '0' key clears all mappings | Quick reset |
+| 2026-04-05 | Active MIDI feedback (magenta) | Visual feedback when moving controls |
+| 2026-04-05 | bool_fader type | Threshold-based toggle control |
 
 ---
 
@@ -1102,16 +1107,23 @@ private:
 - [x] Implement type detection (detectElementType)
 - [x] Implement learn mode methods (startLearning, finishLearning)
 - [x] Implement XML save/load methods
-- [x] Implement onDraw with modal overlay and rainbow bar
+- [x] Implement onDraw with modal overlay
 - [x] Implement right-click removal
-- [x] Update example project
-- [x] Fix compilation errors (constructor, const correctness, variable names)
+- [x] Implement left-click deselect
+- [x] Implement active MIDI feedback (magenta highlight)
+- [x] Implement bool_fader type for threshold-based toggles
+- [x] Implement '0' key to clear all mappings
+- [x] Fix CC vs Note key generation bug
+- [x] Fix UI offset for element positioning
+- [x] Update example project (TAB key)
+- [x] Save by default on exit (ESC to discard)
+- [x] Test build with chalet buildrun
+- [x] Test with actual APC Mini hardware
+- [x] Verify XML loading on startup
 
-### Pending 🔄
-- [ ] Test build with chalet buildrun
-- [ ] Test with actual APC Mini hardware
-- [ ] Verify XML loading on startup
-- [ ] Fine-tune visual feedback timing
+### Status: **COMPLETE** 🎉
+
+The MIDI Learn feature is fully implemented and tested!
 
 ## Next Steps
 
