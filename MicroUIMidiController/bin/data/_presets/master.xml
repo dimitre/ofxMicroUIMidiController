@@ -1,8 +1,8 @@
 <ofxMicroUI>2</ofxMicroUI>
 <elementsList>
 	<presetsFolder>1</presetsFolder>
-	<presets>5</presets>
-	<fboX>739</fboX>
-	<fboY>194</fboY>
-	<fboScale>1</fboScale>
+	<presets>0</presets>
+	<fboX>314</fboX>
+	<fboY>314</fboY>
+	<fboScale>0.753846</fboScale>
 </elementsList>

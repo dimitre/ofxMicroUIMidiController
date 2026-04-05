@@ -42,7 +42,10 @@ void ofxMicroUIMidiController::parseMidiMessage(ofxMidiMessage& msg) {
 		cout << "-------" << endl;
 	}
 
-	string index = ofToString(msg.channel) + " " + ofToString(msg.pitch) + " " + ofToString(msg.control);
+	// For CC messages, use control number as the identifier (same as saving)
+	// For Note messages, use pitch (note number)
+	int midiId = (msg.status == 176) ? msg.control : msg.pitch;
+	string index = getMappingKey(msg.channel, midiId, 0);
 	string index2 = index + " " + ofToString(msg.status);
 
 	if ( midiControllerMap.find(index) != midiControllerMap.end()) {
@@ -114,6 +117,17 @@ void ofxMicroUIMidiController::parseMidiMessage(ofxMidiMessage& msg) {
 				cout << "NULL" << endl;
 			}
 		}
+		
+		else if (te->tipo == "bool_fader") {
+			// Boolean controlled by fader with threshold (0-63 = false, 64-127 = true)
+			ofxMicroUI::toggle * t = _ui->getToggle(te->nome);
+			if (t != NULL) {
+				bool newValue = msg.value >= 64;  // Threshold at midpoint
+				if (t->getVal() != newValue) {
+					t->set(newValue);
+				}
+			}
+		}
 
 		else if (te->tipo == "hold") {
 			ofxMicroUI::hold * e = (ofxMicroUI::hold*)_ui->getElement(te->nome);
@@ -167,10 +181,7 @@ void ofxMicroUIMidiController::parseMidiMessage(ofxMidiMessage& msg) {
 			}
 		}
 	} else {
-		// discard note off ?
-		if (msg.status != 128) {
-			cout << index << "\t\t" << index2 << endl;
-		}
+		// Unmapped MIDI message - ignore
 	}
 	midiKeys[msg.pitch] = msg.status == 144;
 	midiMessage = msg;
@@ -188,8 +199,9 @@ void ofxMicroUIMidiController::set(const string & midiDevice) {
 	//	ofxMidi::setConnectionListener(this);
 		midiControllerIn.addListener(this);
 
+		// Old .txt format - commented out, using XML only now
+		/*
 		string fileName { folder + midiDevice + ".txt" };
-
 		if (fs::exists(ofToDataPath(fileName)) && midiControllerIn.isOpen()) {
 			for (auto & m : ofxMicroUI::textToVector(fileName)) {
 				if (m != "" && m.substr(0,1) != "#") {
@@ -206,17 +218,17 @@ void ofxMicroUIMidiController::set(const string & midiDevice) {
 					int pitch 	= ofToInt(vals[1]);
 					te.channel = channel;
 					te.pitch = pitch;
-
-					// isso aqui da igual a index = cols[0]
 					string index = cols[0];
-
-
 					midiControllerMap[index] = te;
 					elements.push_back(&midiControllerMap[index]);
 				}
 			}
 		}
+		*/
 
+		// Load XML mappings (new format)
+		loadMappingsFromXml();
+		
 		ofAddListener(ofEvents().exit, this, &ofxMicroUIMidiController::onExit);
 	}
 }
@@ -312,7 +324,9 @@ void ofxMicroUIMidiController::setLearnMode(bool active) {
 		learnElement = nullptr;
 		justMappedElement = nullptr;
 		
-		cout << "MIDI Learn Mode: OFF" << endl;
+		// Save by default when exiting (TAB key behavior)
+		saveMappingsToXml();
+		cout << "MIDI Learn: Saved and exited" << endl;
 	}
 }
 
@@ -334,6 +348,14 @@ void ofxMicroUIMidiController::onKeyPressed(ofKeyEventArgs& args) {
 		// Cancel and restore backup
 		cancelLearnMode();
 		cout << "MIDI Learn: Cancelled" << endl;
+	}
+	else if (args.key == '0') {
+		// Clear all mappings
+		int count = midiControllerMap.size();
+		midiControllerMap.clear();
+		justMappedElement = nullptr;
+		learnElement = nullptr;
+		cout << "MIDI Learn: Cleared all " << count << " mappings" << endl;
 	}
 }
 
@@ -379,12 +401,18 @@ void ofxMicroUIMidiController::onMousePressed(ofMouseEventArgs& args) {
 			}
 		}
 	}
-	// Left-click on empty space to deselect
+	// Left-click on element or empty space
 	else if (args.button == 0) {
-		if (!clickedElement && learnElement != nullptr) {
+		if (clickedElement) {
+			// Clicked on a new element - clear the "just mapped" green highlight
+			// The actual learning will start via _lastClickedElement in update()
+			justMappedElement = nullptr;
+		}
+		else if (learnElement != nullptr) {
 			// Clicked on empty space - deselect
 			learnElement = nullptr;
 			learnUIName = "";
+			justMappedElement = nullptr;
 			cout << "MIDI Learn: Deselected element" << endl;
 		}
 	}
@@ -406,8 +434,12 @@ void ofxMicroUIMidiController::startLearning(ofxMicroUI::element* e, const strin
 void ofxMicroUIMidiController::finishLearning(const ofxMidiMessage& msg) {
 	if (!learnElement) return;
 	
-	// Build mapping key
-	string key = getMappingKey(msg.channel, msg.pitch, msg.control);
+	// For CC messages, use control number as the identifier
+	// For Note messages, use pitch (note number)
+	int midiId = (msg.status == 176) ? msg.control : msg.pitch;
+	
+	// Build mapping key (channel + midiId, control is always 0 in key)
+	string key = getMappingKey(msg.channel, midiId, 0);
 	
 	// One-to-one mapping: remove any existing mapping for this MIDI
 	auto it = midiControllerMap.find(key);
@@ -418,6 +450,14 @@ void ofxMicroUIMidiController::finishLearning(const ofxMidiMessage& msg) {
 	// Detect element type
 	string tipo = detectElementType(learnElement);
 	
+	// For bool/toggle, check if MIDI is CC (fader) or Note (button)
+	if (tipo == "bool") {
+		if (msg.status == 176) {  // Control Change (fader)
+			tipo = "bool_fader";
+		}
+		// Note (144) uses default "bool" (flip mode)
+	}
+	
 	// Create new mapping
 	elementListMidiController mapping;
 	mapping.device = midiControllerIn.getName();  // Store device name
@@ -425,7 +465,7 @@ void ofxMicroUIMidiController::finishLearning(const ofxMidiMessage& msg) {
 	mapping.tipo = tipo;
 	mapping.nome = learnElement->name;
 	mapping.channel = msg.channel;
-	mapping.pitch = msg.pitch;
+	mapping.pitch = midiId;  // Store the actual CC number or note number
 	
 	// For radio, we might need valor - detect if needed
 	if (tipo == "radio") {
@@ -579,15 +619,15 @@ void ofxMicroUIMidiController::drawStatusBar() {
 	ofSetColor(100, 255, 150);
 	
 	if (learnElement != nullptr) {
-		// Line 1: What to do
-		ofDrawBitmapString("Move MIDI control to map '" + learnElement->name + "'", 20, y1);
+		// Line 1: Mode + what to do
+		ofDrawBitmapString("MIDI Learn Mode: Move MIDI control to map '" + learnElement->name + "'", 20, y1);
 		// Line 2: Shortcuts
 		ofDrawBitmapString("[Esc] Cancel", 20, y2);
 	} else {
-		// Line 1: What to do
-		ofDrawBitmapString("Click element, then move MIDI control | Right-click mapped: remove", 20, y1);
+		// Line 1: Mode + what to do
+		ofDrawBitmapString("MIDI Learn Mode: Click element, then move MIDI control | Right-click mapped: remove", 20, y1);
 		// Line 2: Shortcuts
-		ofDrawBitmapString("[Enter] Save  |  [Esc] Cancel", 20, y2);
+		ofDrawBitmapString("[Enter] Save  |  [Esc] Cancel  |  [0] Clear all", 20, y2);
 	}
 }
 
@@ -753,9 +793,9 @@ ofRectangle ofxMicroUIMidiController::getElementScreenRect(ofxMicroUI::element* 
 	
 	ofRectangle rect = e->rect;
 	
-	// Add UI offset
-	rect.x += e->_ui->rectPos.x;
-	rect.y += e->_ui->rectPos.y;
+	// Add UI position and settings offset
+	rect.x += e->_ui->rectPos.x + e->_ui->_settings->offset.x;
+	rect.y += e->_ui->rectPos.y + e->_ui->_settings->offset.y;
 	
 	return rect;
 }

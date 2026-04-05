@@ -46,7 +46,8 @@ void ofApp::draw() {
 }
 
 void ofApp::keyPressed(int key) {
-	if (key == 'm' || key == 'M') {
+	if (key == OF_KEY_TAB) {
+		// TAB toggles learn mode, saves by default when exiting
 		midiController.toggleLearnMode();
 	}
 }
