@@ -1,0 +1,9 @@
+ofpath: ../../..
+version: 0.0.1
+templates:
+  - chalet
+  - zed
+addons:
+  - ofxMidi
+  - ofxMicroUI
+  - ofxMicroUIMidiController
