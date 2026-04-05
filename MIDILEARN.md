@@ -1090,14 +1090,32 @@ private:
 | 2026-04-05 | Auto-registered draw via ofEvents | No explicit draw() call needed in ofApp |
 | 2026-04-05 | Use dynamic_cast for type detection | Consistent with existing ofxMicroUI patterns |
 | 2026-04-05 | Rainbow bar shows mapped CCs only | Unmapped = dim, mapped = bright with hue |
+| 2026-04-05 | Store device name in mappings | Foundation for multi-device support |
 
 ---
 
+## Implementation Status
+
+### Completed ✅
+- [x] Add `_lastClickedElement` to ofxMicroUI
+- [x] Add LearnState and methods to ofxMicroUIMidiController.h
+- [x] Implement type detection (detectElementType)
+- [x] Implement learn mode methods (startLearning, finishLearning)
+- [x] Implement XML save/load methods
+- [x] Implement onDraw with modal overlay and rainbow bar
+- [x] Implement right-click removal
+- [x] Update example project
+- [x] Fix compilation errors (constructor, const correctness, variable names)
+
+### Pending 🔄
+- [ ] Test build with chalet buildrun
+- [ ] Test with actual APC Mini hardware
+- [ ] Verify XML loading on startup
+- [ ] Fine-tune visual feedback timing
+
 ## Next Steps
 
-1. Answer open questions (see section above)
-2. Decide on file format
-3. Implement core learn mode
-4. Add visual feedback
-5. Test with APC Mini
-6. Iterate based on usage
+1. Build and verify no compilation errors
+2. Test learn mode workflow with hardware
+3. Verify mappings persist after save/load
+4. Iterate based on usage feedback

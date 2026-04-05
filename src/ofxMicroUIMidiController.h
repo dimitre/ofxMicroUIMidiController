@@ -169,6 +169,7 @@ public:
 	// todo: some kind of listener able to connect if device is not found at first.
 	struct elementListMidiController {
 	public:
+		string device;  // MIDI device name
 		string ui;
 		string tipo;
 		string nome;
@@ -235,6 +236,7 @@ public:
 		//--------------------------------------------------------------
 	void newMidiMessage(ofxMidiMessage& msg);
 	void parseMidiMessage(ofxMidiMessage& msg);
+	void parseMidiMessageWithLearn(ofxMidiMessage& msg);  // Wraps parseMidiMessage with learn mode
 
 	void set(const string & midiDevice);
 
@@ -254,6 +256,66 @@ public:
 	void checkElement(const ofxMicroUI::element & e);
 	void uiEvent(ofxMicroUI::element & e);
 	void uiEventMaster(string & s);
+	
+	// ============================================================
+	// MIDI LEARN FEATURE
+	// ============================================================
+	
+public:
+	// Learn mode control
+	void toggleLearnMode();
+	void setLearnMode(bool active);
+	bool isLearnMode() const { return learnMode; }
+	
+	// Event handlers (auto-registered)
+	void onDraw(ofEventArgs& args);
+	void onKeyPressed(ofKeyEventArgs& args);
+	void onMousePressed(ofMouseEventArgs& args);
+	
+private:
+	// Learn mode state
+	bool learnMode = false;
+	ofxMicroUI::element* learnElement = nullptr;
+	string learnUIName;
+	ofxMicroUI::element* justMappedElement = nullptr;
+	float justMappedTime = 0;
+	
+	// Current MIDI being learned
+	int currentLearnChannel = -1;
+	int currentLearnPitch = -1;
+	int currentLearnControl = -1;
+	
+	// Last received MIDI for active feedback
+	ofxMidiMessage lastReceivedMidi;
+	float lastMidiReceiveTime = 0;
+	static constexpr float MIDI_HIGHLIGHT_DURATION = 0.3f;  // seconds
+	
+	// Backup for cancel functionality
+	map<string, elementListMidiController> mappingsBackup;
+	
+	// Mapping management
+	void startLearning(ofxMicroUI::element* e, const string& uiName);
+	void finishLearning(const ofxMidiMessage& msg);
+	void clearMapping(const string& uiName, const string& elementName);
+	void cancelLearnMode();
+	
+	// Type detection
+	string detectElementType(ofxMicroUI::element* e);
+	
+	// Visual feedback
+	void drawLearnModeOverlay();
+	void drawStatusBar();
+	
+	// XML persistence
+	string getMappingsFilePath() const;
+	void saveMappingsToXml();
+	void loadMappingsFromXml();
+	
+	// Helpers
+	string getMappingKey(int channel, int pitch, int control) const;
+	ofxMicroUI::element* findElementAcrossUIs(const string& uiName, const string& elementName);
+	bool isElementMapped(ofxMicroUI::element* e, string& outKey);
+	ofRectangle getElementScreenRect(ofxMicroUI::element* e);
 };
 
 
