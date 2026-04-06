@@ -3,6 +3,17 @@
 ## Overview
 MIDI Learn feature for ofxMicroUIMidiController, inspired by Ableton Live's implementation. Allows quick mapping of MIDI controllers to UI elements without manually editing text files.
 
+### New: Multi-Device Support 🎉
+The controller now automatically listens to **all connected MIDI devices** simultaneously. No device selection required - just plug in any controller and start mapping!
+
+```cpp
+// New default constructor - opens all MIDI devices
+ofxMicroUIMidiController midiController(&soft);
+
+// Learn mode: move any control on any device → instant mapping
+// Feedback: LEDs update only on the device that created each mapping
+```
+
 ---
 
 ## Current State
@@ -1096,6 +1107,64 @@ private:
 | 2026-04-05 | '0' key clears all mappings | Quick reset |
 | 2026-04-05 | Active MIDI feedback (magenta) | Visual feedback when moving controls |
 | 2026-04-05 | bool_fader type | Threshold-based toggle control |
+| 2026-04-05 | Multi-device support | Listen to all MIDI devices simultaneously |
+| 2026-04-05 | Device-specific feedback | Output only to device that created mapping |
+| 2026-04-05 | One mapping per element | Simplified key structure |
+
+---
+
+## Multi-Device Architecture
+
+### Overview
+The MIDI controller now supports listening to **all connected MIDI devices simultaneously**. No device selection required - just plug in any controller and it works.
+
+### Key Features
+
+| Feature | Behavior |
+|---------|----------|
+| **Auto-detection** | All MIDI input devices opened automatically |
+| **Universal input** | Any device can trigger any mapping |
+| **Device-specific output** | LED feedback goes only to the device that created the mapping |
+| **Backup equipment** | Same device name = same mappings (seamless swap) |
+| **Hot-swap** | Disconnect/reconnect - mappings persist |
+
+### Constructor Options
+
+```cpp
+// Default: listen to ALL MIDI devices (recommended)
+ofxMicroUIMidiController midiController(&soft);
+
+// Legacy: specific device only
+ofxMicroUIMidiController midiController(&soft, "APC MINI");
+```
+
+### Mapping Storage
+
+Each mapping stores the device name:
+```xml
+<mapping device="APC MINI" channel="1" pitch="48" ui="master" tipo="float" nome="volume"/>
+```
+
+- **Input**: Any connected device triggers the mapping
+- **Output**: Only "APC MINI" gets LED feedback
+- If "APC MINI" is disconnected, no feedback (silently ignored)
+- If another device named "APC MINI" is connected, it receives feedback
+
+### Data Structures
+
+```cpp
+// Per-device MIDI I/O
+struct MidiDevice {
+    string name;
+    ofxMidiIn in;
+    ofxMidiOut out;
+    MidiDeviceListener listener;  // Knows its device name
+};
+vector<MidiDevice> devices;
+
+// One mapping per UI element (key: "uiName/elementName")
+map<string, elementListMidiController> elementToMidi;
+```
 
 ---
 
@@ -1120,14 +1189,19 @@ private:
 - [x] Test build with chalet buildrun
 - [x] Test with actual APC Mini hardware
 - [x] Verify XML loading on startup
+- [x] Multi-device support (all devices)
+- [x] Device-specific output feedback
+- [x] Per-device listener architecture
+- [x] Build verified with chalet
 
 ### Status: **COMPLETE** 🎉
 
-The MIDI Learn feature is fully implemented and tested!
+The MIDI Learn feature and multi-device support are fully implemented!
 
 ## Next Steps
 
 1. Build and verify no compilation errors
 2. Test learn mode workflow with hardware
-3. Verify mappings persist after save/load
-4. Iterate based on usage feedback
+3. Test with multiple MIDI devices
+4. Verify mappings persist after save/load
+5. Iterate based on usage feedback
